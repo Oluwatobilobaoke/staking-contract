@@ -31,8 +31,8 @@ contract StakingToken is ERC20, Ownable {
 
   mapping(address => uint256) internal rewardTime;
 
-  string public tokenName = "PheToken";
-  string public tokenSymbol = "(Phe)";
+  string public tokenName = "TobiToken";
+  string public tokenSymbol = "TT";
   uint8 public tokenDecimals = 18;
 
   uint256 public _supply;
@@ -41,8 +41,10 @@ contract StakingToken is ERC20, Ownable {
   uint256 public numberPerToken = 1000;
   address payable public _owner;
 
-  event TokePriceUpdate(uint256 newPrice);
+  event TokenPriceUpdate(uint256 newPrice);
   event TokenStake(address _stakeholder, uint256 _amount);
+  event ClaimStakingReward(address _stakeholder, uint256 _reward, bool _value);
+
 
   constructor() payable ERC20(tokenName, tokenSymbol) {
     _supply = 100000 * numberPerToken**tokenDecimals;
@@ -70,7 +72,7 @@ contract StakingToken is ERC20, Ownable {
     tokenPrice = _newPrice;
     uint rate = 1;
     numberPerToken = rate / tokenPrice;
-    emit TokePriceUpdate(tokenPrice);
+    emit TokenPriceUpdate(tokenPrice);
   }
 
 
@@ -193,17 +195,15 @@ contract StakingToken is ERC20, Ownable {
 
   // claim rewards
   function claimReward() public {
-    // check if the person has a reward
-    if(rewards[msg.sender] == 0) return;
-
     if(block.timestamp >= rewardTime[msg.sender] + 7 days) {
       uint256 _rewardsToBeClaimed = rewards[msg.sender];
       _mint(msg.sender, _rewardsToBeClaimed);
       rewards[msg.sender] = 0;
       rewardTime[msg.sender] = block.timestamp;
+      emit ClaimStakingReward(msg.sender, _rewardsToBeClaimed, true);
     } else {
-      rewards[msg.sender] = 0;
-      require(false, "You cannot claim rewards until 7 days after the last reward");
+      emit ClaimStakingReward(msg.sender, 0, false);
+
     }
   }
 
